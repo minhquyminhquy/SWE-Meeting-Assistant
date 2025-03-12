@@ -1,0 +1,216 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 id="meetingTitle">Meeting Summary</h2>
+            <div>
+                <a href="{{ url_for('export_summary', meeting_id=meeting.id) }}" class="btn btn-outline-primary" id="exportBtn">
+                    <i class="fas fa-file-export me-2"></i>Export
+                </a>
+                <a href="{{ url_for('index') }}" class="btn btn-outline-secondary ms-2">
+                    <i class="fas fa-upload me-2"></i>New Upload
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="loadingState" class="text-center py-5" style="display: none;">
+    <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <h4 class="mb-3">Processing your meeting recording...</h4>
+    <p class="text-muted">This may take a few minutes depending on the recording length.</p>
+    <div class="progress mt-3" style="height: 10px;">
+        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
+    </div>
+</div>
+
+<div id="errorState" class="alert alert-danger" style="display: none;">
+    <h4 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Processing Error</h4>
+    <p id="errorMessage">There was an error processing your meeting recording.</p>
+    <hr>
+    <p class="mb-0">Please try uploading your recording again or contact support if the issue persists.</p>
+</div>
+
+<div id="resultState" style="display: none;">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent">
+                    <h4 class="mb-0"><i class="fas fa-file-alt text-primary me-2"></i>Meeting Summary</h4>
+                </div>
+                <div class="card-body">
+                    <div id="summary" class="summary-content"></div>
+                </div>
+            </div>
+            
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent">
+                    <h4 class="mb-0"><i class="fas fa-check-circle text-success me-2"></i>Key Decisions</h4>
+                </div>
+                <div class="card-body">
+                    <div id="decisions" class="summary-content"></div>
+                </div>
+            </div>
+            
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent">
+                    <h4 class="mb-0"><i class="fas fa-tasks text-warning me-2"></i>Action Items</h4>
+                </div>
+                <div class="card-body">
+                    <div id="actionItems" class="summary-content"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm sticky-top" style="top: 1rem">
+                <div class="card-header bg-transparent">
+                    <h4 class="mb-0"><i class="fas fa-info-circle text-info me-2"></i>Meeting Details</h4>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Recording File</span>
+                            <span id="originalFilename" class="text-truncate" style="max-width: 200px;"></span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Created</span>
+                            <span id="createdAt"></span>
+                        </li>
+                    </ul>
+                    
+                    <div class="mt-3">
+                        <button class="btn btn-outline-primary w-100" type="button" data-bs-toggle="collapse" data-bs-target="#transcriptCollapse" aria-expanded="false">
+                            <i class="fas fa-file-alt me-2"></i>Show Full Transcript
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="collapse mt-4" id="transcriptCollapse">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent">
+                <h4 class="mb-0"><i class="fas fa-file-alt text-secondary me-2"></i>Full Transcript</h4>
+            </div>
+            <div class="card-body">
+                <div id="transcript" class="transcript-content"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Meeting ID from the URL
+    const meetingId = '{{ meeting.id }}';
+    
+    // Function to format date
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleString();
+    }
+    
+    // Function to convert plain text to HTML with paragraphs
+    function textToHtml(text) {
+        if (!text) return 'No content available';
+        
+        return text.split('\n')
+            .filter(line => line.trim() !== '')
+            .map(line => `<p>${line}</p>`)
+            .join('');
+    }
+    
+    // Function to convert action items to HTML list
+    function actionItemsToHtml(text) {
+        if (!text) return 'No action items identified';
+        
+        const lines = text.split('\n').filter(line => line.trim());
+        
+        if (lines.length === 0) return 'No action items identified';
+        
+        return '<ul class="list-group">' + 
+            lines.map(line => `<li class="list-group-item"><i class="fas fa-clipboard-check text-success me-2"></i>${line}</li>`).join('') + 
+            '</ul>';
+    }
+    
+    // Function to convert decisions to HTML list
+    function decisionsToHtml(text) {
+        if (!text) return 'No decisions identified';
+        
+        const lines = text.split('\n').filter(line => line.trim());
+        
+        if (lines.length === 0) return 'No decisions identified';
+        
+        return '<ul class="list-group">' + 
+            lines.map(line => `<li class="list-group-item"><i class="fas fa-gavel text-info me-2"></i>${line}</li>`).join('') + 
+            '</ul>';
+    }
+    
+    // Function to poll meeting status and update UI
+    function pollMeetingStatus() {
+        fetch(`/api/meeting/${meetingId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Update the meeting title
+                document.getElementById('meetingTitle').textContent = data.title;
+                document.getElementById('originalFilename').textContent = data.original_filename;
+                document.getElementById('createdAt').textContent = formatDate(data.created_at);
+                
+                if (data.error) {
+                    // Show error state
+                    document.getElementById('loadingState').style.display = 'none';
+                    document.getElementById('resultState').style.display = 'none';
+                    document.getElementById('errorState').style.display = 'block';
+                    document.getElementById('errorMessage').textContent = data.error;
+                    document.getElementById('exportBtn').style.display = 'none';
+                } else if (data.processed) {
+                    // Show result state
+                    document.getElementById('loadingState').style.display = 'none';
+                    document.getElementById('errorState').style.display = 'none';
+                    document.getElementById('resultState').style.display = 'block';
+                    
+                    // Update content sections
+                    document.getElementById('summary').innerHTML = textToHtml(data.summary);
+                    document.getElementById('decisions').innerHTML = decisionsToHtml(data.decisions);
+                    document.getElementById('actionItems').innerHTML = actionItemsToHtml(data.action_items);
+                    document.getElementById('transcript').innerHTML = textToHtml(data.transcript);
+                    
+                    // Show export button
+                    document.getElementById('exportBtn').style.display = 'inline-block';
+                } else {
+                    // Show loading state and continue polling
+                    document.getElementById('loadingState').style.display = 'block';
+                    document.getElementById('errorState').style.display = 'none';
+                    document.getElementById('resultState').style.display = 'none';
+                    document.getElementById('exportBtn').style.display = 'none';
+                    
+                    // Continue polling
+                    setTimeout(pollMeetingStatus, 5000);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching meeting status:', error);
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('resultState').style.display = 'none';
+                document.getElementById('errorState').style.display = 'block';
+                document.getElementById('errorMessage').textContent = 'Failed to fetch meeting status. Please refresh the page.';
+            });
+    }
+    
+    // Start polling when the page loads
+    document.addEventListener('DOMContentLoaded', pollMeetingStatus);
+</script>
+{% endblock %}

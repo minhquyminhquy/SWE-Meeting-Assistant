@@ -1,0 +1,22 @@
+{
+    "summary": "The key topics discussed in the meeting include the introduction of time-based data retention limits for vulnerabilities for .com customers in the 18.0 release, communication plans for the changes, the live implementation of vulnerability severity overrides on getlab.com, and the improved usability of UI configured DAST scans. Discussions also touched on the need for automation, potential group-level configurations, and the applicability of changes to different DAST versions.",
+    "decisions": [],
+    "action_items": [
+      {
+        "task": "Send communication to customers via email and Slack notifications",
+        "assignee": "Marketing",
+        "deadline": "End of the week"
+      },
+      {
+        "task": "Explore automation options for vulnerability severity overrides",
+        "assignee": "Security policy team",
+        "deadline": null
+      },
+      {
+        "task": "Verify availability of all CI variables for DAST scans in the UI",
+        "assignee": "Team member responsible for DAST scans",
+        "deadline": null
+      }
+    ]
+  }
+  

@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="text-center py-5">
+    <div class="display-1 text-muted mb-3">
+        <i class="fas fa-map-signs"></i> 404
+    </div>
+    <h1 class="h2 mb-3">Page not found</h1>
+    <p class="h4 text-muted font-weight-normal mb-4">
+        Cannot find the page you're looking for@@
+    </p>
+    <a href="{{ url_for('index') }}" class="btn btn-primary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Home
+    </a>
+</div>
+{% endblock %}

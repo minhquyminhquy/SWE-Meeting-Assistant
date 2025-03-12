@@ -1,0 +1,63 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Meeting History</h2>
+            <a href="{{ url_for('index') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>New Meeting
+            </a>
+        </div>
+        
+        {% if meetings %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Meeting Title</th>
+                            <th>Date</th>
+                            <th>File</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for meeting in meetings %}
+                            <tr>
+                                <td>{{ meeting.title }}</td>
+                                <td>{{ meeting.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td class="text-truncate" style="max-width: 200px;">{{ meeting.original_filename }}</td>
+                                <td>
+                                    {% if meeting.error %}
+                                        <span class="badge bg-danger">Error</span>
+                                    {% elif meeting.processed %}
+                                        <span class="badge bg-success">Completed</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Processing</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('view_summary', meeting_id=meeting.id) }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye me-1"></i> View
+                                    </a>
+                                    {% if meeting.processed and not meeting.error %}
+                                        <a href="{{ url_for('export_summary', meeting_id=meeting.id) }}" class="btn btn-sm btn-outline-secondary ms-1">
+                                            <i class="fas fa-file-export me-1"></i> Export
+                                        </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                No meetings have been processed yet. <a href="{{ url_for('index') }}">Upload a meeting recording</a> to get started.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
