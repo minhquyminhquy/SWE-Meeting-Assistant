@@ -10,8 +10,8 @@ An AI-powered meeting assistant specifically designed for software engineering t
 
 ## Tech Stack
 
-- **Frontend**: React, TypeScript, Tailwind CSS, Radix UI
-- **Backend**: TypeScript
+- **Frontend**: HTML/CSS
+- **Backend**: Flask
 - **Database**: SQLAlchemy
 - **AI Integration**: OpenAI GPT-4 for summarization and analysis
 
@@ -31,16 +31,6 @@ npm run dev
 ```
 
 The application will be available at port 5000.
-
-## Project Structure
-
-```
-├── client/          # Frontend React application
-├── server/          # Express.js backend
-│   ├── lib/         # Utility functions and services
-│   └── routes/      # API routes
-└── shared/          # Shared types and schemas
-```
 
 ## Features in Detail
 
