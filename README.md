@@ -10,7 +10,7 @@ An AI-powered meeting assistant specifically designed for software engineering t
 
 ## Tech Stack
 
-- **Frontend**: HTML/CSS
+- **Frontend**: HTML/CSS, JavaScript
 - **Backend**: Flask
 - **Database**: SQLAlchemy
 - **AI Integration**: OpenAI GPT-4 for summarization and analysis
