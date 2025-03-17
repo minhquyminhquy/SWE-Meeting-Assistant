@@ -1,4 +1,4 @@
-# AI-Powered Software Engieering Meeting Assistant
+# AI-Powered Software Engineering Meeting Assistant
 
 An AI-powered meeting assistant specifically designed for software engineering teams to capture, analyze, and extract insights from technical discussions.
 
